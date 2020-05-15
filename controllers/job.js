@@ -33,8 +33,9 @@ router.get('/:id', handleValidateId, (req, res, next) => {
 
 // CREATE
 // POST api/jobs
-router.post('/', (req, res, next) => {
-	Job.create({ ...req.body, owner: req.user })
+router.post('/', requireToken,(req, res, next) => {
+    console.log(req.user)
+	Job.create({ ...req.body, owner: req.user._id })
 		.then((job) => res.status(201).json(job))
 		.catch(next);
 });
@@ -54,7 +55,7 @@ router.put('/:id', handleValidateId, (req, res, next) => {
 
 // DESTROY
 // DELETE api/jobs/5a7db6c74d55bc51bdf39793
-router.delete('/:id', handleValidateId, (req, res, next) => {
+router.delete('/:id', handleValidateId, requireToken, (req, res, next) => {
 	Job.findById(req.params.id)
 		.then(handleRecordExists)
 		.then((job) => handleValidateOwnership(req, job))
