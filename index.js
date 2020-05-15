@@ -2,11 +2,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
+const userController =  require('./controllers/users')
 const jobController = require('./controllers/job');
 const {handleErrors, handleValidationErrors} = require('./middleware/custom_error')
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api', userController)
 app.use('/api/jobs', jobController);
 app.use((err,req,res,next) =>{
     const statusCode = err.statusCode || 500;

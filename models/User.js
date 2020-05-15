@@ -12,6 +12,16 @@ const userSchema = new mongoose.Schema(
 			required: true,
 		},
 	},
-	{ timestamps: true }
+	{
+		timestamps: true,
+		toJSON: {
+			virtuals: true,
+			//ret is the returned mongoose document
+			transform: (_doc, ret) => {
+				delete ret.password;
+				return ret;
+			},
+		},
+	}
 );
 module.exports = mongoose.model('User', userSchema);
