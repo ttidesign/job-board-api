@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Job = require('../models/Job');
-const seedData = require('./seeds.json');
+const seedData = require('./seed.json');
 
 const getUser = async () => {
 	try {
