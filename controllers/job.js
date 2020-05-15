@@ -3,7 +3,9 @@ const Job = require('../models/Job');
 const {
 	handleValidateId,
 	handleRecordExists,
+	handleValidateOwnership,
 } = require('../middleware/custom_error');
+const { requireToken } = require('../middleware/auth');
 const router = express.Router();
 
 // INDEX
@@ -32,7 +34,7 @@ router.get('/:id', handleValidateId, (req, res, next) => {
 // CREATE
 // POST api/jobs
 router.post('/', (req, res, next) => {
-	Job.create(req.body)
+	Job.create({ ...req.body, owner: req.user })
 		.then((job) => res.status(201).json(job))
 		.catch(next);
 });
@@ -40,10 +42,10 @@ router.post('/', (req, res, next) => {
 // UPDATE
 // PUT api/jobs/5a7db6c74d55bc51bdf39793
 router.put('/:id', handleValidateId, (req, res, next) => {
-	Job.findOneAndUpdate({ _id: req.params.id }, req.body, {
-		new: true,
-	})
+	Job.findById(req.params.id)
 		.then(handleRecordExists)
+		.then((job) => handleValidateOwnership(req, job))
+		.then((job) => job.set(req.body).save())
 		.then((job) => {
 			res.json(job);
 		})
@@ -53,11 +55,11 @@ router.put('/:id', handleValidateId, (req, res, next) => {
 // DESTROY
 // DELETE api/jobs/5a7db6c74d55bc51bdf39793
 router.delete('/:id', handleValidateId, (req, res, next) => {
-	Job.findOneAndDelete({
-		_id: req.params.id,
-	})
+	Job.findById(req.params.id)
 		.then(handleRecordExists)
-		.then((job) => {
+		.then((job) => handleValidateOwnership(req, job))
+		.then((job) => job.remove())
+		.then(() => {
 			res.sendStatus(204);
 		})
 		.catch(next);
