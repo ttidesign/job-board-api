@@ -1,28 +1,63 @@
 const express = require('express');
 const Job = require('../models/Job');
+const {
+  handleValidateId,
+  handleRecordExists,
+} = require('../middleware/custom_error');
 const router = express.Router();
 
-//Get api/jobs
-router.get('/', (req, res) => {
-	Job.find().then((jobs) => res.json(jobs));
+// INDEX
+// GET api/jobs
+router.get('/', (req, res, next) => {
+  // Use our Job model to find all of the documents
+  // in the jobs collection
+  // Then send all of the jobs back as json
+  Job.find().then((jobs) => res.json(jobs));
 });
 
-router.get('/:id', (req, res) => {
-	Job.findById(req.params.id).then((job) => res.json(job));
+// SHOW
+// GET api/jobs/5a7db6c74d55bc51bdf39793
+router.get('/:id', handleValidateId, (req, res, next) => {
+  Job.findById(req.params.id)
+    .then(handleRecordExists)
+    .then((job) => {
+      res.json(job);
+    })
+    .catch(next);
 });
 
-router.post('/', (req, res) => {
-	Job.create(req.body).then((job) => res.json(job));
+// CREATE
+// POST api/jobs
+router.post('/', (req, res, next) => {
+  Job.create(req.body)
+    .then((job) => res.status(201).json(job))
+    .catch(next);
 });
 
-router.put('/:id', (req, res) => {
-	Job.findOneAndUpdate({ _id: req.params.id }, req.body, {
-		new: true,
-	}).then((job) => res.json(job));
+// UPDATE
+// PUT api/jobs/5a7db6c74d55bc51bdf39793
+router.put('/:id', handleValidateId, (req, res, next) => {
+  Job.findOneAndUpdate({ _id: req.params.id }, req.body, {
+    new: true,
+  })
+    .then(handleRecordExists)
+    .then((job) => {
+      res.json(job);
+    })
+    .catch(next);
 });
 
-router.delete('/:id', (req, res) => {
-	Job.findByIdAndDelete(req.params.id).then((job) => res.json(job));
+// DESTROY
+// DELETE api/jobs/5a7db6c74d55bc51bdf39793
+router.delete('/:id', handleValidateId, (req, res, next) => {
+  Job.findOneAndDelete({
+    _id: req.params.id,
+  })
+    .then(handleRecordExists)
+    .then((job) => {
+      res.sendStatus(204);
+    })
+    .catch(next);
 });
 
 module.exports = router;
